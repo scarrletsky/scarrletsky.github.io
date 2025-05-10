@@ -43,36 +43,15 @@ document.addEventListener('DOMContentLoaded', () => {
     viewCounter.textContent = views;
   }, 120000); // 2 minutes
 
-  // Discord Status via Lanyard
+  // Discord Status via Lanyard REST API
   const discordId = '958467831853355018';
-  let ws;
 
-  function connectLanyard() {
-    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
-    ws = new WebSocket('wss://api.lanyard.rest/socket');
-    console.log('Connecting to Lanyard WebSocket...');
-
-    ws.onopen = () => {
-      console.log('Lanyard WebSocket connected');
-      ws.send(JSON.stringify({ op: 2, d: { subscribe_to_ids: [discordId] } }));
-    };
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log('Lanyard data received:', data);
-
-      if (data.op === 1) {
-        // Initialize WebSocket with heartbeat interval
-        console.log('Initializing Lanyard with heartbeat interval:', data.d.heartbeat_interval);
-        setInterval(() => {
-          if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ op: 3 }));
-        }, data.d.heartbeat_interval);
-      }
-
-      if (data.t === 'PRESENCE_UPDATE' || data.t === 'INIT_STATE') {
-        const userData = data.d;
-        console.log('User data:', userData);
-
+  async function fetchLanyardStatus() {
+    try {
+      const response = await fetch(`https://api.lanyard.rest/v1/users/${discordId}`);
+      const data = await response.json();
+      if (data.success) {
+        const userData = data.data;
         // Update status
         const status = userData.discord_status || 'offline';
         statusIndicator.classList.remove('online', 'idle', 'dnd', 'offline');
@@ -93,27 +72,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         cardActivity.textContent = activityText;
         console.log('Activity updated to:', activityText);
+      } else {
+        console.log('Lanyard API error:', data.error);
+        statusIndicator.classList.remove('online', 'idle', 'dnd');
+        statusIndicator.classList.add('offline');
+        cardActivity.textContent = 'Не удалось загрузить статус';
       }
-    };
-
-    ws.onclose = () => {
-      console.log('Lanyard WebSocket disconnected, reconnecting in 2 seconds...');
+    } catch (error) {
+      console.error('Error fetching Lanyard status:', error);
       statusIndicator.classList.remove('online', 'idle', 'dnd');
       statusIndicator.classList.add('offline');
-      cardActivity.textContent = 'Ошибка соединения';
-      setTimeout(connectLanyard, 2000); // Faster reconnect
-    };
-
-    ws.onerror = (error) => {
-      console.error('Lanyard WebSocket error:', error);
-      if (ws.readyState !== WebSocket.OPEN) {
-        setTimeout(connectLanyard, 2000); // Retry on error
-      }
-    };
+      cardActivity.textContent = 'Не удалось загрузить статус';
+    }
   }
 
-  // Start Lanyard connection
-  connectLanyard();
+  // Fetch status initially and then every 15 seconds
+  fetchLanyardStatus();
+  setInterval(fetchLanyardStatus, 15000);
 
   function initParticles() {
     const ctx = particlesCanvas.getContext('2d', { alpha: true });
