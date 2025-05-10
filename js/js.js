@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const duration = document.getElementById('duration');
   const enterButton = document.getElementById('enter-button');
   const loader = document.getElementById('loader');
+  const statusIndicator = document.querySelector('.status-indicator');
+  const cardActivity = document.querySelector('.card-activity');
 
   // Initialize view count
   let views = localStorage.getItem('pageViews');
@@ -40,6 +42,78 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('pageViews', views);
     viewCounter.textContent = views;
   }, 120000); // 2 minutes
+
+  // Discord Status via Lanyard
+  const discordId = '958467831853355018';
+  let ws;
+
+  function connectLanyard() {
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+    ws = new WebSocket('wss://api.lanyard.rest/socket');
+    console.log('Connecting to Lanyard WebSocket...');
+
+    ws.onopen = () => {
+      console.log('Lanyard WebSocket connected');
+      ws.send(JSON.stringify({ op: 2, d: { subscribe_to_ids: [discordId] } }));
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('Lanyard data received:', data);
+
+      if (data.op === 1) {
+        // Initialize WebSocket with heartbeat interval
+        console.log('Initializing Lanyard with heartbeat interval:', data.d.heartbeat_interval);
+        setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ op: 3 }));
+        }, data.d.heartbeat_interval);
+      }
+
+      if (data.t === 'PRESENCE_UPDATE' || data.t === 'INIT_STATE') {
+        const userData = data.d;
+        console.log('User data:', userData);
+
+        // Update status
+        const status = userData.discord_status || 'offline';
+        statusIndicator.classList.remove('online', 'idle', 'dnd', 'offline');
+        statusIndicator.classList.add(status);
+        console.log('Status updated to:', status);
+
+        // Update activity (without "Активность:" prefix)
+        let activityText = 'AFK / Sleeping';
+        if (userData.activities && userData.activities.length > 0) {
+          const activity = userData.activities.find(a => a.type === 4) || // Custom status
+                        userData.activities.find(a => a.type === 0) || // Game
+                        userData.activities[0];
+          if (activity.type === 4 && activity.state) {
+            activityText = activity.state;
+          } else if (activity.name) {
+            activityText = activity.name;
+          }
+        }
+        cardActivity.textContent = activityText;
+        console.log('Activity updated to:', activityText);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('Lanyard WebSocket disconnected, reconnecting in 2 seconds...');
+      statusIndicator.classList.remove('online', 'idle', 'dnd');
+      statusIndicator.classList.add('offline');
+      cardActivity.textContent = 'Ошибка соединения';
+      setTimeout(connectLanyard, 2000); // Faster reconnect
+    };
+
+    ws.onerror = (error) => {
+      console.error('Lanyard WebSocket error:', error);
+      if (ws.readyState !== WebSocket.OPEN) {
+        setTimeout(connectLanyard, 2000); // Retry on error
+      }
+    };
+  }
+
+  // Start Lanyard connection
+  connectLanyard();
 
   function initParticles() {
     const ctx = particlesCanvas.getContext('2d', { alpha: true });
@@ -189,6 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
     fullname.classList.add('visible');
     gsap.to('.card-tagline', { opacity: 1, y: 0, duration: 0.5, delay: 1.1, ease: 'power2.out' });
     document.querySelector('.card-tagline').classList.add('visible');
+    gsap.to('.card-activity', { opacity: 1, y: 0, duration: 0.5, delay: 1.2, ease: 'power2.out' });
+    document.querySelector('.card-activity').classList.add('visible');
     gsap.to('.card-glitch-title', { opacity: 1, y: 0, duration: 0.5, delay: 1.3, ease: 'power2.out' });
     document.querySelector('.card-glitch-title').classList.add('visible');
     gsap.to(linkButtons, { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, delay: 1.5, ease: 'power2.out' });
