@@ -229,12 +229,12 @@ body {
 
 .status-indicator {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 40%;
   background: #747f8d; /* Offline by default */
-  bottom: 2px;
-  right: 2px;
+  bottom: 17px;
+  right: 175px;
   z-index: 5;
   transition: background 0.3s ease;
 }
