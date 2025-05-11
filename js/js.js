@@ -43,6 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
     viewCounter.textContent = views;
   }, 120000); // 2 minutes
 
+  // Periodic glitch effect for view counter
+  setInterval(() => {
+    cardViewCounter.classList.add('glitch');
+    setTimeout(() => {
+      cardViewCounter.classList.remove('glitch');
+    }, 500);
+  }, 10000); // Every 10 seconds
+
   // Discord Status via Lanyard REST API
   const discordId = '958467831853355018';
 
@@ -56,6 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = userData.discord_status || 'offline';
         statusIndicator.classList.remove('online', 'idle', 'dnd', 'offline');
         statusIndicator.classList.add(status);
+        // Update tooltip text
+        const tooltip = statusIndicator.querySelector('.tooltip');
+        tooltip.textContent = status === 'offline' ? 'Offline' : 'Online';
         console.log('Status updated to:', status);
 
         // Update activity (without "Активность:" prefix)
@@ -76,12 +87,14 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Lanyard API error:', data.error);
         statusIndicator.classList.remove('online', 'idle', 'dnd');
         statusIndicator.classList.add('offline');
+        statusIndicator.querySelector('.tooltip').textContent = 'Offline';
         cardActivity.textContent = 'Не удалось загрузить статус';
       }
     } catch (error) {
       console.error('Error fetching Lanyard status:', error);
       statusIndicator.classList.remove('online', 'idle', 'dnd');
       statusIndicator.classList.add('offline');
+      statusIndicator.querySelector('.tooltip').textContent = 'Offline';
       cardActivity.textContent = 'Не удалось загрузить статус';
     }
   }
@@ -248,6 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cardViewCounter.classList.add('visible');
     gsap.to(mediaPlayer, { opacity: 1, y: 0, duration: 0.5, delay: 1.9, ease: 'power2.out' });
     mediaPlayer.classList.add('visible');
+    gsap.to('.copyright', { opacity: 1, duration: 0.5, delay: 2.0, ease: 'power2.out' });
   }
 
   function formatTime(s) {
