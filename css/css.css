@@ -234,7 +234,7 @@ body {
   border-radius: 40%;
   background: #747f8d; /* Offline by default */
   bottom: 17px;
-  right: 203px;
+  right: 175px;
   z-index: 5;
   transition: background 0.3s ease;
 }
@@ -246,7 +246,7 @@ body {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  border: 2px solid #fff;
+  border: 2px solid #fff; /* White mask like Discord */
   border-radius: 50%;
   z-index: -1;
 }
@@ -346,14 +346,6 @@ body {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.5s ease, transform 0.5s ease;
-  color: #ccc; /* Default color for AFK or fallback */
-}
-
-.card-activity .activity-prefix {
-  color: #ccc; /* Plain color for "Играет в " */
-}
-
-.card-activity:not(.afk) .activity-text {
   background: linear-gradient(
     to right,
     rgb(0, 0, 0) 0%,
@@ -499,19 +491,17 @@ body {
 
 .media-player {
   width: 400px;
-  background: rgba(20, 20, 20, 0.7);
-  border-radius: 15px;
-  padding: 15px 20px;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  color: #fff;
-  font-family: 'Space Mono', monospace;
-  margin-top: 20px;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: all 0.3s ease;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 10px;
+  backdrop-filter: none;
+  box-shadow: none;
+  z-index: 30;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.3s ease;
+  margin-top: 0;
 }
 
 .media-player.visible {
@@ -520,17 +510,20 @@ body {
 }
 
 .media-player:hover {
-  transform: scale(1.03);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
 .player-content {
-  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .player-info {
-  margin-bottom: 10px;
-  text-align: center;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .track-title {
@@ -744,4 +737,110 @@ body {
 
 .main-content.visible .copyright {
   opacity: 1;
+}
+
+.media-player {
+  width: 400px;
+  background: rgba(20, 20, 20, 0.7);
+  border-radius: 15px;
+  padding: 15px 20px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  font-family: 'Space Mono', monospace;
+  margin-top: 20px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.media-player:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.player-content {
+  width: 100%;
+}
+
+.player-info {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.track-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.player-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.current-time,
+.duration {
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+.progress-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  outline: none;
+  transition: background 0.2s ease;
+}
+
+.progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.6);
+}
+
+.progress-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.6);
+}
+
+.player-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.control-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  backdrop-filter: blur(5px);
+}
+
+.control-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
 }
