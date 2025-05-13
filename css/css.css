@@ -234,7 +234,7 @@ body {
   border-radius: 40%;
   background: #747f8d; /* Offline by default */
   bottom: 17px;
-  right: 175px;
+  right: 215px;
   z-index: 5;
   transition: background 0.3s ease;
 }
@@ -346,6 +346,14 @@ body {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.5s ease, transform 0.5s ease;
+  color: #ccc; /* Default color for AFK or fallback */
+}
+
+.card-activity .activity-prefix {
+  color: #ccc; /* Plain color for "Играет в " */
+}
+
+.card-activity:not(.afk) .activity-text {
   background: linear-gradient(
     to right,
     rgb(0, 0, 0) 0%,
