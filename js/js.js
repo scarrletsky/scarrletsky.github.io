@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const loader = document.getElementById('loader');
   const statusIndicator = document.querySelector('.status-indicator');
   const cardActivity = document.querySelector('.card-activity');
+  const activityPrefix = document.querySelector('.activity-prefix');
+  const activityText = document.querySelector('.activity-text');
 
   // Initialize view count
   let views = localStorage.getItem('pageViews');
@@ -64,38 +66,59 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = userData.discord_status || 'offline';
         statusIndicator.classList.remove('online', 'idle', 'dnd', 'offline');
         statusIndicator.classList.add(status);
+
         // Update tooltip text
         const tooltip = statusIndicator.querySelector('.tooltip');
         tooltip.textContent = status === 'offline' ? 'Offline' : 'Online';
         console.log('Status updated to:', status);
 
-        // Update activity (without "Активность:" prefix)
-        let activityText = 'AFK / Sleeping';
+        // Update activity
+        let activityContent = 'AFK / Sleeping';
+        let isAFK = true;
+
         if (userData.activities && userData.activities.length > 0) {
           const activity = userData.activities.find(a => a.type === 4) || // Custom status
-                        userData.activities.find(a => a.type === 0) || // Game
-                        userData.activities[0];
+                          userData.activities.find(a => a.type === 0) || // Game
+                          userData.activities[0];
+
           if (activity.type === 4 && activity.state) {
-            activityText = activity.state;
+            activityContent = activity.state;
+            isAFK = activityContent === 'AFK / Sleeping';
           } else if (activity.name) {
-            activityText = activity.name;
+            activityContent = activity.name;
+            isAFK = false;
           }
         }
-        cardActivity.textContent = activityText;
-        console.log('Activity updated to:', activityText);
+
+        // Update prefix and activity text
+        activityPrefix.textContent = isAFK ? '' : 'Играет в ';
+        activityText.textContent = activityContent;
+
+        // Add or remove 'afk' class based on activity
+        if (isAFK) {
+          cardActivity.classList.add('afk');
+        } else {
+          cardActivity.classList.remove('afk');
+        }
+
+        console.log('Activity updated to:', activityPrefix.textContent + activityText.textContent);
       } else {
         console.log('Lanyard API error:', data.error);
         statusIndicator.classList.remove('online', 'idle', 'dnd');
         statusIndicator.classList.add('offline');
         statusIndicator.querySelector('.tooltip').textContent = 'Offline';
-        cardActivity.textContent = 'Не удалось загрузить статус';
+        activityPrefix.textContent = '';
+        activityText.textContent = 'Не удалось загрузить статус';
+        cardActivity.classList.add('afk'); // Treat error as AFK for styling
       }
     } catch (error) {
       console.error('Error fetching Lanyard status:', error);
       statusIndicator.classList.remove('online', 'idle', 'dnd');
       statusIndicator.classList.add('offline');
       statusIndicator.querySelector('.tooltip').textContent = 'Offline';
-      cardActivity.textContent = 'Не удалось загрузить статус';
+      activityPrefix.textContent = '';
+      activityText.textContent = 'Не удалось загрузить статус';
+      cardActivity.classList.add('afk'); // Treat error as AFK for styling
     }
   }
 
@@ -178,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let i = trails.length - 1; i >= 0; i--) {
         trails[i].update();
         trails[i].draw();
-        if (trails[i].life <= 0 || trails[i].radius <= 0.1) trails.splice(i, 1);
+        if (trails[i].life <= 0 || trails[i].radius <= 0.1) trails.splice(i);
       }
       requestAnimationFrame(animate);
     }
