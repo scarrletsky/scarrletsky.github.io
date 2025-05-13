@@ -54,54 +54,50 @@ document.addEventListener('DOMContentLoaded', () => {
   // Discord Status via Lanyard REST API
   const discordId = '958467831853355018';
 
-async function fetchLanyardStatus() {
-  try {
-    const response = await fetch(`https://api.lanyard.rest/v1/users/${discordId}`);
-    const data = await response.json();
-    if (data.success) {
-      const userData = data.data;
-      // Update status
-      const status = userData.discord_status || 'offline';
-      statusIndicator.classList.remove('online', 'idle', 'dnd', 'offline');
-      statusIndicator.classList.add(status);
+  async function fetchLanyardStatus() {
+    try {
+      const response = await fetch(`https://api.lanyard.rest/v1/users/${discordId}`);
+      const data = await response.json();
+      if (data.success) {
+        const userData = data.data;
+        // Update status
+        const status = userData.discord_status || 'offline';
+        statusIndicator.classList.remove('online', 'idle', 'dnd', 'offline');
+        statusIndicator.classList.add(status);
+        // Update tooltip text
+        const tooltip = statusIndicator.querySelector('.tooltip');
+        tooltip.textContent = status === 'offline' ? 'Offline' : 'Online';
+        console.log('Status updated to:', status);
 
-      // Update tooltip text
-      const tooltip = statusIndicator.querySelector('.tooltip');
-      tooltip.textContent = status === 'offline' ? 'Offline' : 'Online';
-      console.log('Status updated to:', status);
-
-      // Update activity
-      let activityText = 'AFK / Sleeping';
-      if (userData.activities && userData.activities.length > 0) {
-        const activity = userData.activities.find(a => a.type === 4) || // Custom status
-                         userData.activities.find(a => a.type === 0) || // Game
-                         userData.activities[0];
-
-        if (activity.type === 4 && activity.state) {
-          activityText = activity.state;
-        } else if (activity.name) {
-          activityText = `Играет в ${activity.name}`;
+        // Update activity (without "Активность:" prefix)
+        let activityText = 'AFK / Sleeping';
+        if (userData.activities && userData.activities.length > 0) {
+          const activity = userData.activities.find(a => a.type === 4) || // Custom status
+                        userData.activities.find(a => a.type === 0) || // Game
+                        userData.activities[0];
+          if (activity.type === 4 && activity.state) {
+            activityText = activity.state;
+          } else if (activity.name) {
+            activityText = activity.name;
+          }
         }
+        cardActivity.textContent = activityText;
+        console.log('Activity updated to:', activityText);
+      } else {
+        console.log('Lanyard API error:', data.error);
+        statusIndicator.classList.remove('online', 'idle', 'dnd');
+        statusIndicator.classList.add('offline');
+        statusIndicator.querySelector('.tooltip').textContent = 'Offline';
+        cardActivity.textContent = 'Не удалось загрузить статус';
       }
-
-      cardActivity.textContent = activityText;
-      console.log('Activity updated to:', activityText);
-    } else {
-      console.log('Lanyard API error:', data.error);
+    } catch (error) {
+      console.error('Error fetching Lanyard status:', error);
       statusIndicator.classList.remove('online', 'idle', 'dnd');
       statusIndicator.classList.add('offline');
       statusIndicator.querySelector('.tooltip').textContent = 'Offline';
       cardActivity.textContent = 'Не удалось загрузить статус';
     }
-  } catch (error) {
-    console.error('Error fetching Lanyard status:', error);
-    statusIndicator.classList.remove('online', 'idle', 'dnd');
-    statusIndicator.classList.add('offline');
-    statusIndicator.querySelector('.tooltip').textContent = 'Offline';
-    cardActivity.textContent = 'Не удалось загрузить статус';
   }
-}
-
 
   // Fetch status initially and then every 15 seconds
   fetchLanyardStatus();
