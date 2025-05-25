@@ -234,7 +234,7 @@ body {
   border-radius: 40%;
   background: #747f8d; /* Offline by default */
   bottom: 15px;
-  right: 175px;
+  right: 200px;
   z-index: 5;
   transition: background 0.3s ease;
 }
